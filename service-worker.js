@@ -28,21 +28,37 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    if(event.request.mode === 'navigate') {
-        event.respondWith((async function() {
-            try {
-                const preloadResponse = await event.preloadResponse;
-                if(preloadResponse) {
-                    return preloadResponse;
-                }
-                const networkResponse = await fetch(event.request);
-                return networkResponse;
-            } catch (error) {
-                console.error("Fetch failed, returning offline page.");
-                const cache = await caches.open(CACHE_NAME);
-                const cachedResponse = await cache.match(event.request);
-                return cachedResponse || fetch(event.request);
-            }
-        })());
-    }
+  // if(event.request.mode === 'navigate') {
+  //     event.respondWith((async function() {
+  //         try {
+  //             const preloadResponse = await event.preloadResponse;
+  //             if(preloadResponse) {
+  //                 return preloadResponse;
+  //             }
+  //             const networkResponse = await fetch(event.request);
+  //             return networkResponse;
+  //         } catch (error) {
+  //             console.error("Fetch failed, returning offline page.");
+  //             const cache = await caches.open(CACHE_NAME);
+  //             const cachedResponse = await cache.match(event.request);
+  //             return cachedResponse || fetch(event.request);
+  //         }
+  //     })());
+  // }
+  event.respondWith(
+      caches.match(event.request).then(function(response) {
+        console.log("ServiceWorker: Menarik data: ", event.request.url);
+   
+        if (response) {
+          console.log("ServiceWorker: Gunakan aset dari cache: ", response.url);
+          return response;
+        }
+   
+        console.log(
+          "ServiceWorker: Memuat aset dari server: ",
+          event.request.url
+        );
+        return fetch(event.request);
+      })
+    );
 });
