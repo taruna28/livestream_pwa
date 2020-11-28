@@ -6,16 +6,17 @@ const assets = [
     '/js/app.js',
     '/css/style.css',
     '/manifest.json',
-    '/css/Nunito-Regular.ttf'
+    '/css/Nunito-Regular.ttf',
+    "/images/icon-192.png"
 ];
 
 self.addEventListener("install", function(event) {
-    event.waitUntil((async function () {
-        const cache = await caches.open(CACHE_NAME);
-        await cache.addAll(assets);
-    })());
-    self.skipWaiting();
-});
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(function(cache) {
+        cache.addAll(assets);
+      })
+    );
+  });
 
 self.addEventListener('activate', function(event) {
     console.info("[SW] Active!");
@@ -28,21 +29,37 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    if(event.request.mode === 'navigate') {
-        event.respondWith((async function() {
-            try {
-                const preloadResponse = await event.preloadResponse;
-                if(preloadResponse) {
-                    return preloadResponse;
-                }
-                const networkResponse = await fetch(event.request);
-                return networkResponse;
-            } catch (error) {
-                console.error("Fetch failed, returning offline page.");
-                const cache = await caches.open(CACHE_NAME);
-                const cachedResponse = await cache.match(event.request);
-                return cachedResponse || fetch(event.request);
-            }
-        })());
-    }
+    // if(event.request.mode === 'navigate') {
+    //     event.respondWith((async function() {
+    //         try {
+    //             const preloadResponse = await event.preloadResponse;
+    //             if(preloadResponse) {
+    //                 return preloadResponse;
+    //             }
+    //             const networkResponse = await fetch(event.request);
+    //             return networkResponse;
+    //         } catch (error) {
+    //             console.error("Fetch failed, returning offline page.");
+    //             const cache = await caches.open(CACHE_NAME);
+    //             const cachedResponse = await cache.match(event.request);
+    //             return cachedResponse || fetch(event.request);
+    //         }
+    //     })());
+    // }
+    event.respondWith(
+        caches.match(event.request).then(function(response) {
+          console.log("ServiceWorker: Menarik data: ", event.request.url);
+     
+          if (response) {
+            console.log("ServiceWorker: Gunakan aset dari cache: ", response.url);
+            return response;
+          }
+     
+          console.log(
+            "ServiceWorker: Memuat aset dari server: ",
+            event.request.url
+          );
+          return fetch(event.request);
+        })
+      );
 });

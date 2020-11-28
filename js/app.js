@@ -1,10 +1,10 @@
 console.log("PWA Livestreaming begin");
 
-window.addEventListener('load', function() {
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register('service-worker.js');
-    }
-});
+// window.addEventListener('load', function() {
+//     if ("serviceWorker" in navigator) {
+//         navigator.serviceWorker.register('service-worker.js');
+//     }
+// });
 
 const COLORS = [
     '#c0ffee',
